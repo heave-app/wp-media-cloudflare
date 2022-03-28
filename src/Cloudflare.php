@@ -43,7 +43,7 @@ class Cloudflare
         return compact('api_token', 'account_id');
     }
 
-    public function upload($attachment)
+    public function upload($attachment, $meta_data = [])
     {
         $cloudflareId = get_post_meta($attachment->ID, 'cloudflare_id', true);
 

@@ -33,7 +33,8 @@ class Main
         add_filter( 'widget_block_content', [$this, 'wp_filter_content_tags'], 10, 2);
         
         // Handle ajax upload and edit
-        add_action('save_post_attachment', [$this, 'save_post_attachment'], 10, 3);
+        //add_action('wp_after_insert_post', [$this, 'save_post_attachment'], 10, 3);
+        add_filter('wp_generate_attachment_metadata', [$this, 'update_attachment_metadata'], 10, 3);
 
         // Add buttons to media modal
         
@@ -74,19 +75,9 @@ class Main
         $this->cloudflare->delete($image_id);
     }
 
-    public function save_post_attachment($post_id, $post, $update)
+    public function update_attachment_metadata($metadata, $attachment_id, $context)
     {
-        if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id) || wp_is_post_autodraft($post_id)) {
-            return;
-        }
-
-        // if ($update) {
-        //     $image_id = get_post_meta($post_id, 'cloudflare_image_id', true);
-
-        //     if (!$image_id) {
-        //         return;
-        //     }
-        // }
+        $post = get_post($attachment_id);
 
         $this->cloudflare->upload($post);
     }

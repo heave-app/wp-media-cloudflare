@@ -4,8 +4,11 @@ This plugin lets you upload and offload image to [Cloudflare Images](https://www
 
 The plugin is work in progress and it's actively development. Use at your own risk. More detailed documentation will available on April.
 
-## Roadmap
-- [x]  Offload single image manually
-- [ ]  Offload automatically when upload
-- [ ]  WordPress.org repo
+## Todo
+- [x]  Offload single image manually.
+- [x]  Offload automatically when upload.
+- [ ]  Limit file size to 10MB.
+- [ ]  Delete local image after upload.
+- [ ]  Variants setup instruction on settings page.
+- [ ]  WordPress.org repo.
 - [ ]  Batch upload images. Currently, CF doesn't have that feature, we have to upload one-by-one.

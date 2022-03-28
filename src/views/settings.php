@@ -45,6 +45,16 @@
                     </th>
                     <td><input type="text" name="wmcf[default_variant]" id="default_variant" class="regular-text" value="<?= esc_attr($settings['default_variant']) ?? '' ?>" /></td>
                 </tr>
+
+                <tr>
+                    <th scope="row">
+                        <label for="auto_upload"><?php _e('Auto upload to cloudflare?', 'wmcf'); ?></label>
+                    </th>
+                    <td>
+                        <input type="hidden" name="wmcf[auto_upload]" value="0">
+                        <input type="checkbox" name="wmcf[auto_upload]" id="auto_upload" value="1" <?= isset($settings['auto_upload']) ? 'checked' : '' ?> />
+                    </td>
+                </tr>
             </tbody>
         </table>
 

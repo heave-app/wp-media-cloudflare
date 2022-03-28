@@ -35,16 +35,18 @@ class Settings
 
     public function admin_init()
     {
-        if (isset($_POST['wmcf'])) {
-            $settings = $_POST['wmcf'];
-            
-            if (!check_admin_referer('update-wmcf-settings') || !current_user_can('manage_options')) {
-                die(__('You are not allowed to perform this action.', 'wmcf'));
-            }
-
-            update_option('wmcf_settings', $settings);
-            wp_safe_redirect(admin_url('options-general.php?page=wp-media-cloudflare&status=success'));
-            exit;
+        if (!isset($_POST['wmcf'])) {
+            return;
         }
+
+        if (!check_admin_referer('update-wmcf-settings') || !current_user_can('manage_options')) {
+            die(__('You are not allowed to perform this action.', 'wmcf'));
+        }
+
+        $settings = $_POST['wmcf'];
+
+        update_option('wmcf_settings', $settings);
+        wp_safe_redirect(admin_url('options-general.php?page=wp-media-cloudflare&status=success'));
+        exit;
     }
 }

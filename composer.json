@@ -1,0 +1,21 @@
+{
+    "name": "heave/wp-media-cloudflare",
+    "description": "Cloudflare integration for WordPress",
+    "type": "library",
+    "license": "GNU GPL",
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "Heave\\WpMediaCloudflare\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Tan Nguyen",
+            "email": "hi@tan.ng"
+        }
+    ],
+    "require": {}
+}

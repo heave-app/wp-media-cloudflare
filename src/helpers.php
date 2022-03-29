@@ -1,11 +1,14 @@
 <?php
 
-function wmcf_get_setting($key = null)
+function wmcf_get_setting($key = null, $default = null)
 {
+    static $settings;
+
     $defaults = [
-        'default_variant' => 'public',
-        'account_id' => '',
-        'api_token' => '',
+        'default_variant'   => 'public',
+        'account_id'        => '',
+        'api_token'         => '',
+        'auto_upload'       => true
     ];
 
     $settings = get_option('wmcf_settings', $defaults);
@@ -18,5 +21,5 @@ function wmcf_get_setting($key = null)
         return $settings[$key];
     }
 
-    return null;
+    return $default;
 }

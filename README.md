@@ -7,8 +7,10 @@ The plugin is work in progress and it's actively development. Use at your own ri
 ## Todo
 - [x]  Offload single image manually.
 - [x]  Offload automatically when upload.
-- [ ]  Limit file size to 10MB.
+- [x]  Limit file size to 10MB.
 - [ ]  Delete local image after upload.
 - [ ]  Variants setup instruction on settings page.
+- [ ]  Work with images only.
+- [ ]  Sync delete and update.
 - [ ]  WordPress.org repo.
 - [ ]  Batch upload images. Currently, CF doesn't have that feature, we have to upload one-by-one.

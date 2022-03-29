@@ -6,6 +6,8 @@ class Main
 {
     public $cloudflare;
 
+    public $settings;
+
     public function __construct()
     {
         $this->cloudflare = new Cloudflare();
@@ -34,7 +36,11 @@ class Main
         
         // Handle ajax upload and edit
         //add_action('wp_after_insert_post', [$this, 'save_post_attachment'], 10, 3);
-        add_filter('wp_generate_attachment_metadata', [$this, 'update_attachment_metadata'], 10, 3);
+        $auto_upload = wmcf_get_setting('auto_upload', false);
+
+        if ($auto_upload) {
+            add_filter('wp_generate_attachment_metadata', [$this, 'update_attachment_metadata'], 10, 3);
+        }
 
         // Add buttons to media modal
         

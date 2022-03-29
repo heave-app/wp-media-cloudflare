@@ -52,6 +52,12 @@ class Cloudflare
         }
 
         $attachedFile = get_attached_file($attachment->ID);
+        $file_size = filesize($attachedFile);
+        $file_size_in_mb = $file_size / 1024 / 1024;
+
+        if ($file_size_in_mb > 10) {
+            throw new \Exception('File size is too large');
+        }
 
         $params = $this->getRequiredParams();
         $api_token = $params['api_token'];

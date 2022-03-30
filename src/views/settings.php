@@ -17,7 +17,7 @@
             </div>
         <?php endif; ?>
     <?php endif; ?>
-    
+
 
     <form method="post" action="options.php" novalidate>
         <input type="hidden" name="page" value="wmcf">
@@ -31,7 +31,7 @@
                     </th>
                     <td><input type="text" name="wmcf[account_id]" id="account_id" class="regular-text" value="<?= esc_attr($settings['account_id']) ?? '' ?>" /></td>
                 </tr>
-                
+
                 <tr>
                     <th scope="row">
                         <label for="api_token"><?php _e('API Token', 'wmcf'); ?></label>
@@ -48,11 +48,34 @@
 
                 <tr>
                     <th scope="row">
-                        <label for="auto_upload"><?php _e('Auto upload to cloudflare?', 'wmcf'); ?></label>
+                        <label for="auto_upload"><?php _e('Auto upload to Cloudflare?', 'wmcf'); ?></label>
                     </th>
                     <td>
                         <input type="hidden" name="wmcf[auto_upload]" value="0">
                         <input type="checkbox" name="wmcf[auto_upload]" id="auto_upload" value="1" <?= isset($settings['auto_upload']) ? 'checked' : '' ?> />
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">
+                        <label for="variants"><?php _e('Copy these variants to Cloudflare', 'wmcf'); ?></label> 
+                        <a href="https://heave.app/docs/wp-media-cloudflare#variants">docs</a>
+                    </th>
+                    <td>
+                        <dl>
+                            <?php
+                            $variants = wp_get_registered_image_subsizes();
+
+                            foreach ($variants as $name => $size) :
+                            ?>
+                                <dt><?= $name ?></dt>
+                                <dd>
+                                    <code><?= $size['width'] ?>x<?= $size['height'] ?></code>
+                                </dd>
+                            <?php
+                            endforeach;
+                            ?>
+                        </dl>
                     </td>
                 </tr>
             </tbody>

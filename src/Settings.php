@@ -29,8 +29,12 @@ class Settings
 
     public function assets()
     {
-        wp_enqueue_script('wp-media-cloudflare-admin', WPCFI_PLUGIN_URL . '/assets/wp-media-cloudflare.js', ['jquery', 'media-upload', 'media'], '0.0.1', true);
-        wp_enqueue_style('wp-media-cloudflare-admin', WPCFI_PLUGIN_URL . '/assets/wp-media-cloudflare.css', [], '0.0.1');
+        wp_enqueue_script('wmcf-admin', WPCFI_PLUGIN_URL . '/assets/wp-media-cloudflare.js', ['jquery', 'media-upload', 'media'], '0.0.1', true);
+        wp_localize_script('wmcf-admin', 'wmcf', [
+            'ajaxurl'  => admin_url('admin-ajax.php'),
+            'nonce'     => wp_create_nonce('wpcf'),
+        ]);
+        wp_enqueue_style('wmcf-admin', WPCFI_PLUGIN_URL . '/assets/wp-media-cloudflare.css', [], '0.0.1');
     }
 
     public function admin_init()

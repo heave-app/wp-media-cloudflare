@@ -14,8 +14,6 @@ class Main
 
         add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
 
-        add_action('save_post', [$this, 'save']);
-
         if (is_admin()) {
             add_action('wp_ajax_cloudflare_action', [$this, 'cloudflare_action']);
         }
@@ -38,8 +36,22 @@ class Main
         //add_action('wp_after_insert_post', [$this, 'save_post_attachment'], 10, 3);
         $auto_upload = wmcf_get_setting('auto_upload', false);
 
+        // do_action( 'wp_after_insert_post', $post_id, $post, $update, $post_before );
+
         if ($auto_upload) {
-            add_filter('wp_generate_attachment_metadata', [$this, 'update_attachment_metadata'], 10, 3);
+            add_action('edit_attachment', [$this, 'save_post_attachment'], 10, 1);
+            add_action('add_attachment', [$this, 'save_post_attachment'], 10, 1);
+            
+            add_filter('wp_update_attachment_metadata', function ($data, $attachment_id) {
+                // backup the original metadata
+                update_post_meta($attachment_id, '_wcf_old_attachment_metadata', $data);
+                
+                foreach ($data['sizes'] as $size => $details) {
+                    $data['sizes'][$size]['file'] = $size;
+                }
+        
+                return $data;
+            }, 10, 2);
         }
 
         // Add buttons to media modal
@@ -81,11 +93,13 @@ class Main
         $this->cloudflare->delete($image_id);
     }
 
-    public function update_attachment_metadata($metadata, $attachment_id, $context)
+    public function save_post_attachment($attachment_id)
     {
-        $post = get_post($attachment_id);
+        $attachment = get_post($attachment_id);
+        
+        $data = $this->cloudflare->upload($attachment);
 
-        $this->cloudflare->upload($post);
+        $this->update_attachment_metadata($attachment, $data);
     }
 
     public function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attachment_id = 0 ) 
@@ -505,6 +519,10 @@ class Main
 
     public function cloudflare_action()
     {
+        if ( ! wp_verify_nonce( $_POST['nonce'], 'wpcf' ) ) {
+            die (__('Hacked?', 'wmcf'));
+        }
+
         $action = trim($_POST['name']);
 
         if (!in_array($action, ['push', 'push_and_remove_local'])) {
@@ -512,10 +530,10 @@ class Main
         }
 
         $mediaId = intval($_POST['value']);
-        $media = get_post($mediaId);
+        $attachment = get_post($mediaId);
 
         // Response error when post isn't attachment
-        if (!$media || $media->post_type !== 'attachment' || !wp_attachment_is_image($mediaId)) {
+        if (!$attachment || $attachment->post_type !== 'attachment' || !wp_attachment_is_image($mediaId)) {
             wp_send_json_error([
                 'message' => 'Invalid media type',
             ]);
@@ -523,10 +541,57 @@ class Main
 
         if ($action === 'push') {
             // Check if media is already uploaded to cloudflare
-            $uploaded = $this->cloudflare->upload($media);
+            if (get_post_meta($mediaId, 'cloudflare_url', true)) {
+                wp_send_json_error([
+                    'message' => 'Media already uploaded to cloudflare',
+                ]);
+            }
 
-            wp_send_json_success(['uploaded' => $uploaded]);
+            $data = $this->cloudflare->upload($attachment);
+            $this->update_attachment_metadata($attachment, $data);
+
+            wp_send_json_success(['uploaded' => $data]);
         }
+    }
+
+    public function update_attachment_metadata($attachment, $data)
+    {
+        if (isset($data['success']) && $data['success']) {
+            $id = $data['result']['id'];
+            $variants = $data['result']['variants'];
+            // Replace data in wp_posts table
+            update_post_meta($attachment->ID, 'cloudflare_url', $this->cloudflare->getVariant($variants));
+            update_post_meta($attachment->ID, 'cloudflare_image_id', $id);
+            update_post_meta($attachment->ID, 'cloudflare_variants', $variants);
+            update_post_meta($attachment->ID, 'wcf_local_url', $attachment->guid);
+            update_post_meta($attachment->ID, '_wp_attached_file', $this->cloudflare->getVariant($variants));
+            $attachment->guid = $this->cloudflare->getVariant($variants);
+            $attachmentDetails = wp_get_attachment_metadata($attachment->ID);
+            
+            if ($attachmentDetails) {
+                // backup the original metadata
+                update_post_meta($attachment->ID, '_wcf_old_attachment_metadata', $attachmentDetails);
+        
+                foreach ($attachmentDetails['sizes'] as $size => $details) {
+                    $attachmentDetails['sizes'][$size]['file'] = $size;
+                }
+        
+                if (!isset($metadata)) {
+                    update_post_meta($attachment->ID, '_wp_attachment_metadata', $attachmentDetails);
+                }
+            }
+
+            wp_update_post($attachment);
+
+            return [
+                'id'        => $id,
+                'variants'  => $variants,
+                'url'       => $attachment->guid,
+                'metadata'  => $attachmentDetails,
+            ];
+        }
+
+        return false;
     }
 
     public function add_meta_boxes()
@@ -543,6 +608,8 @@ class Main
 
     public function render_meta_box($post)
     {
+        $cloudflare_url = get_post_meta($post->ID, 'cloudflare_url', true);
+
         $actions = [
             'push' => __('Push to Cloudflare', 'wmcf'),
             'push_and_remove_local' => __('Push to Cloudflare and remove local copy', 'wmcf'),
@@ -551,6 +618,11 @@ class Main
             'remove_cloudflare' => __('Remove from Cloudflare', 'wmcf'),
             'remove_cloudflare_and_local' => __('Remove from Cloudflare and local copy', 'wmcf'),
         ];
+
+        if ($cloudflare_url) {
+            unset($actions['push']);
+            unset($actions['push_and_remove_local']);
+        }
 ?>
         <div>
             <?php foreach ($actions as $action => $label) : ?>
@@ -560,8 +632,8 @@ class Main
 <?php
     }
 
-    public function save($post_id)
-    {
-        dd($post_id);
-    }
+    // public function save($post_id)
+    // {
+    //     dd($post_id);
+    // }
 }

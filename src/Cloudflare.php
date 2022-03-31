@@ -43,10 +43,10 @@ class Cloudflare
         return compact('api_token', 'account_id');
     }
 
-    public function upload($attachment, $meta_data = [])
+    public function upload($attachment, $metadata = [])
     {
         $cloudflareId = get_post_meta($attachment->ID, 'cloudflare_id', true);
-        
+
         if ($cloudflareId) {
             throw new \Exception('Already uploaded to Cloudflare');
         }
@@ -54,14 +54,15 @@ class Cloudflare
         $attachedFile = get_attached_file($attachment->ID);
         $mime_type = mime_content_type($attachedFile);
 
+        // Only images can be uploaded to Cloudflare
         if (strpos($mime_type, 'image/') !== 0) {
             return;
-            // throw new \Exception('Only images can be uploaded to Cloudflare');
         }
 
         $file_size = filesize($attachedFile);
         $file_size_in_mb = $file_size / 1024 / 1024;
 
+        // File size is too large
         if ($file_size_in_mb > 10) {
             throw new \Exception('File size is too large');
         }
@@ -78,11 +79,11 @@ class Cloudflare
         $payload .= '--' . $boundary;
         $payload .= "\r\n";
         $payload .= 'Content-Disposition: form-data; name="' . 'file' .
-            '"; filename="' . basename( $attachedFile ) . '"' . "\r\n";
+            '"; filename="' . basename($attachedFile) . '"' . "\r\n";
         $payload .= "\r\n";
-        $payload .= file_get_contents( $attachedFile );
+        $payload .= file_get_contents($attachedFile);
         $payload .= "\r\n";
-        
+
         $payload .= '--' . $boundary . '--';
 
         $response = wp_remote_post($url, [
@@ -95,39 +96,55 @@ class Cloudflare
 
         $data = wp_remote_retrieve_body($response);
         $data = json_decode($data, true);
-        
-        if (isset($data['success']) && $data['success']) {
-            $id = $data['result']['id'];
-            $variants = $data['result']['variants'];
 
-            // Replace data in wp_posts table
-            update_post_meta($attachment->ID, 'cloudflare_url', $this->getVariant($variants));
-            update_post_meta($attachment->ID, 'cloudflare_image_id', $id);
-            update_post_meta($attachment->ID, 'cloudflare_variants', $variants);
-            update_post_meta($attachment->ID, 'wcf_local_url', $attachment->guid);
-            update_post_meta($attachment->ID, '_wp_attached_file', $this->getVariant($variants));
+        return $data;
 
-            $attachment->guid = $this->getVariant($variants);
-            $attachmentDetails = wp_get_attachment_metadata($attachment->ID);
-
-            // backup the original metadata
-            update_post_meta($attachment->ID, '_wcf_old_attachment_metadata', $attachmentDetails);
+        // if (isset($data['success']) && $data['success']) {
+        //     $id = $data['result']['id'];
+        //     $variants = $data['result']['variants'];
+        //     $this->update_metadata($attachment, $data);
             
-            foreach ($attachmentDetails['sizes'] as $size => $details) {
-                $attachmentDetails['sizes'][$size]['file'] = $size;
-            }
 
-            wp_update_attachment_metadata($attachment->ID, $attachmentDetails);
-            wp_update_post($attachment);
+        //     return [
+        //         'id'        => $id,
+        //         'variants'  => $variants,
+        //         'url'       => $attachment->guid,
+        //         'metadata'  => $attachmentDetails,
+        //     ];
+        // }
 
-            return [
-                'id'        => $id,
-                'variants'  => $variants,
-                'url'       => $attachment->guid,
-            ];
+        // return [
+        //     'metadata' => $metadata ?? false
+        // ];
+    }
+
+    public function update_metadata($attachment, $data)
+    {
+        $id = $data['result']['id'];
+        $variants = $data['result']['variants'];
+
+        // Replace data in wp_posts table
+        update_post_meta($attachment->ID, 'cloudflare_url', $this->getVariant($variants));
+        update_post_meta($attachment->ID, 'cloudflare_image_id', $id);
+        update_post_meta($attachment->ID, 'cloudflare_variants', $variants);
+        update_post_meta($attachment->ID, 'wcf_local_url', $attachment->guid);
+        update_post_meta($attachment->ID, '_wp_attached_file', $this->getVariant($variants));
+
+        $attachment->guid = $this->getVariant($variants);
+        $attachmentDetails = $metadata ?? wp_get_attachment_metadata($attachment->ID);
+
+        // backup the original metadata
+        update_post_meta($attachment->ID, '_wcf_old_attachment_metadata', $attachmentDetails);
+
+        foreach ($attachmentDetails['sizes'] as $size => $details) {
+            $attachmentDetails['sizes'][$size]['file'] = $size;
         }
 
-        return false;
+        if (!isset($metadata)) {
+            update_post_meta($attachment->ID, '_wp_attachment_metadata', $attachmentDetails);
+        }
+
+        wp_update_post($attachment);
     }
 
     public function delete($image_id)

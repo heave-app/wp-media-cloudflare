@@ -18,11 +18,12 @@ The plugin is work in progress and it's actively development. Use at your own ri
 - [x] Offload single image manually.
 - [x] Offload automatically when upload.
 - [x] Limit file size to 10MB.
-- [ ] Add nonce to AJAX requests.
+- [x] Add nonce to AJAX requests.
 - [ ] Upload to CF from preview dialog.
 - [ ] Delete local image after upload.
 - [x] Variants setup instruction on settings page.
 - [x] Work with images only.
+- [ ] Replace frontend URL after success
 - [ ] Sync delete and update.
 - [ ] WordPress.org repo.
 - [ ] Product page and documentation.

@@ -6,11 +6,12 @@ The plugin is work in progress and it's actively development. Use at your own ri
 
 ## Installation
 @todo: Image for each step
-0. Download this plugin, extract and put it in `wp-content/plugins` folder like other plugins.
+
+1. Download this plugin, extract and put it in `wp-content/plugins` folder like other plugins.
 1. Hit activate from wp-admin plugins screen.
-2. Go to Settings page and copy related api keys from Cloudflare.
-3. Create variants on Cloudflare based on variants of your website.
-4. Save Settings and enjoy.
+1. Go to Settings page and copy related api keys from Cloudflare.
+1. Create variants on Cloudflare based on variants of your website.
+1. Save Settings and enjoy.
 
 
 ## Todo
@@ -21,7 +22,7 @@ The plugin is work in progress and it's actively development. Use at your own ri
 - [ ] Upload to CF from preview dialog.
 - [ ] Delete local image after upload.
 - [x] Variants setup instruction on settings page.
-- [ ] Work with images only.
+- [x] Work with images only.
 - [ ] Sync delete and update.
 - [ ] WordPress.org repo.
 - [ ] Product page and documentation.

@@ -46,12 +46,19 @@ class Cloudflare
     public function upload($attachment, $meta_data = [])
     {
         $cloudflareId = get_post_meta($attachment->ID, 'cloudflare_id', true);
-
+        
         if ($cloudflareId) {
             throw new \Exception('Already uploaded to Cloudflare');
         }
 
         $attachedFile = get_attached_file($attachment->ID);
+        $mime_type = mime_content_type($attachedFile);
+
+        if (strpos($mime_type, 'image/') !== 0) {
+            return;
+            // throw new \Exception('Only images can be uploaded to Cloudflare');
+        }
+
         $file_size = filesize($attachedFile);
         $file_size_in_mb = $file_size / 1024 / 1024;
 

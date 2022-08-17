@@ -123,13 +123,13 @@ class Main
          * @param int    $attachment_id The image attachment ID or 0 if not supplied.
          */
         $image_meta = apply_filters( 'wp_calculate_image_srcset_meta', $image_meta, $size_array, $image_src, $attachment_id );
-            
+        
         if ( empty( $image_meta['sizes'] ) || ! isset( $image_meta['file'] ) || strlen( $image_meta['file'] ) < 4 ) {
             return false;
         }
         
         $image_sizes = $image_meta['sizes'];
-        
+
         // Get the width and height of the image.
         $image_width  = (int) $size_array[0];
         $image_height = (int) $size_array[1];
@@ -321,18 +321,19 @@ class Main
     
         $width  = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : 0;
         $height = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : 0;
-    
+        
         if ( $width && $height ) {
             $size_array = array( $width, $height );
         } else {
             $size_array = wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id );
+
             if ( ! $size_array ) {
                 return $image;
             }
         }
     
         $srcset = $this->wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attachment_id );
-            
+ 
         if ( $srcset ) {
             // Check if there is already a 'sizes' attribute.
             $sizes = strpos( $image, ' sizes=' );
@@ -371,7 +372,7 @@ class Main
          * @param int    $attachment_id The image attachment ID.
          */
         $add = apply_filters( 'wp_img_tag_add_srcset_and_sizes_attr', true, $image, $context, $attachment_id );
-    
+
         if ( true === $add ) {
             $image_meta = wp_get_attachment_metadata( $attachment_id );
             return $this->wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id );
